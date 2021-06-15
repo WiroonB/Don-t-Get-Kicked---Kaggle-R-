@@ -1,0 +1,147 @@
+---
+title: "Final_Submission_2"
+author: "JSilver87"
+date: "5/5/2020"
+output: html_document
+---
+
+```{r}
+require(tidyverse, quietly = TRUE)
+require(ISLR, quietly = TRUE)
+require(modelr, quietly = TRUE)
+require(caret, quietly = TRUE)
+require(class, quietly = TRUE)
+require(writexl, quietly = TRUE)
+require(ggplot2, quietly = TRUE)
+require(lattice, quietly = TRUE)
+```
+
+```{r}
+training=read_csv('training.csv')
+
+training$MMRAcquisitionAuctionAveragePrice<-as.numeric(training$MMRAcquisitionAuctionAveragePrice)
+training$MMRAcquisitionAuctionCleanPrice<-as.numeric(training$MMRAcquisitionAuctionCleanPrice)
+training$MMRAcquisitionRetailAveragePrice<-as.numeric(training$MMRAcquisitionRetailAveragePrice)
+training$MMRAcquisitonRetailCleanPrice<-as.numeric(training$MMRAcquisitonRetailCleanPrice)
+training$MMRCurrentAuctionAveragePrice<-as.numeric(training$MMRCurrentAuctionAveragePrice)
+training$MMRCurrentAuctionCleanPrice<-as.numeric(training$MMRCurrentAuctionCleanPrice)
+training$MMRCurrentRetailAveragePrice<-as.numeric(training$MMRCurrentRetailAveragePrice)
+training$MMRCurrentRetailCleanPrice<-as.numeric(training$MMRCurrentRetailCleanPrice)
+training$WheelTypeID<-as.numeric(training$WheelTypeID)
+training$VehOdo<-as.numeric(training$VehOdo)
+
+
+
+training=training%>%select(-PurchDate, -PRIMEUNIT, -AUCGUART,-Model,-Trim,-SubModel,-Auction, -Size, -TopThreeAmericanName, -VNST, -VNZIP1, -Color, -Make, -WheelTypeID, -Transmission)
+
+
+training=na.omit(training,0)
+
+testing=read_csv('test.csv')
+testing$MMRAcquisitionAuctionAveragePrice<-as.numeric(testing$MMRAcquisitionAuctionAveragePrice)
+testing$MMRAcquisitionAuctionCleanPrice<-as.numeric(testing$MMRAcquisitionAuctionCleanPrice)
+testing$MMRAcquisitionRetailAveragePrice<-as.numeric(testing$MMRAcquisitionRetailAveragePrice)
+testing$MMRAcquisitonRetailCleanPrice<-as.numeric(testing$MMRAcquisitonRetailCleanPrice)
+testing$MMRCurrentAuctionAveragePrice<-as.numeric(testing$MMRCurrentAuctionAveragePrice)
+testing$MMRCurrentAuctionCleanPrice<-as.numeric(testing$MMRCurrentAuctionCleanPrice)
+testing$MMRCurrentRetailAveragePrice<-as.numeric(testing$MMRCurrentRetailAveragePrice)
+testing$MMRCurrentRetailCleanPrice<-as.numeric(testing$MMRCurrentRetailCleanPrice)
+training$VehOdo<-as.numeric(training$VehOdo)
+
+
+testing$MMRAcquisitionAuctionAveragePrice<-replace_na(testing$MMRAcquisitionAuctionAveragePrice,0)
+testing$MMRAcquisitionAuctionCleanPrice<-replace_na(testing$MMRAcquisitionAuctionCleanPrice, 0)
+testing$MMRAcquisitionRetailAveragePrice<-replace_na(testing$MMRAcquisitionRetailAveragePrice, 0)
+testing$MMRAcquisitonRetailCleanPrice<-replace_na(testing$MMRAcquisitonRetailCleanPrice, 0)
+testing$MMRCurrentAuctionAveragePrice<-replace_na(testing$MMRCurrentAuctionAveragePrice, 0)
+testing$MMRCurrentAuctionCleanPrice<-replace_na(testing$MMRCurrentAuctionCleanPrice, 0)
+testing$MMRCurrentRetailAveragePrice<-replace_na(testing$MMRCurrentRetailAveragePrice, 0)
+testing$MMRCurrentRetailCleanPrice<-replace_na(testing$MMRCurrentRetailCleanPrice, 0)
+training$VehOdo<-replace_na(training$VehOdo, 0)
+
+
+
+
+testing=testing%>%select(-PurchDate, -PRIMEUNIT, -AUCGUART,-Model,-Trim,-SubModel,-Auction, -Size, -TopThreeAmericanName, -VNST, -VNZIP1, -Color, -Make, -WheelTypeID, -Transmission)
+
+
+
+
+categorical=training%>%select_if(is.character)
+names(categorical)
+
+models=map(names(categorical), ~formula( paste('~',.x,'-1', sep='')))
+models%>%head()
+rs=map(models, ~model.matrix(.x, data=training))
+all_dummies=Reduce(cbind, rs)%>%as_tibble()
+all_dummies%>%head()
+
+training=training%>%select_if(is.numeric)%>%bind_cols(all_dummies)
+training$IsBadBuy<-as.factor(training$IsBadBuy)
+training
+testing
+
+
+
+categorical=testing%>%select_if(is.character)
+names(categorical)
+
+models=map(names(categorical), ~formula( paste('~',.x,'-1', sep='')))
+models%>%head()
+rs=map(models, ~model.matrix(.x, data=testing))
+all_dummies=Reduce(cbind, rs)%>%as_tibble()
+all_dummies%>%head()
+testing=testing%>%select_if(is.numeric)%>%bind_cols(all_dummies)
+
+```
+
+```{r}
+set.seed(914)
+#Split training data into training / testing data
+indxTrain <- createDataPartition(y=training$IsBadBuy,p = 0.40, list = FALSE)
+trainer = training[indxTrain,]
+tester = training[-indxTrain,]
+
+#Checking distribution in original data vs partitioned
+prop.table(table(trainer$IsBadBuy)) * 100
+prop.table(table(tester$IsBadBuy)) * 100
+```
+
+
+```{r}
+trainX = trainer[,names(trainer) != 'IsBadBuy']
+preProcValues = preProcess(x = trainX, method = c('center','scale'))
+preProcValues
+```
+
+```{r}
+set.seed(629)
+ctrl = trainControl(method="repeatedcv",repeats = 3)
+knnFit = train(IsBadBuy~., data = trainer, method = 'knn', trControl = ctrl, preProcess = c("center","scale"))
+
+knnFit
+
+plot(knnFit)
+```
+
+```{r}
+knnPredict = predict(knnFit, newdata = tester)
+
+confusionMatrix(knnPredict, tester$IsBadBuy)
+```
+
+```{r}
+mean(knnPredict == tester$IsBadBuy)
+```
+
+```{r}
+testing
+
+predict = predict(knnFit, newdata = testing)
+predict = predict%>%as.tibble()
+```
+
+```{r}
+write_xlsx(x = predict, path = "final_prediction2.xlsx", col_names = TRUE)
+```
+

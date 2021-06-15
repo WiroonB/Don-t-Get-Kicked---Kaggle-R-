@@ -1,0 +1,216 @@
+---
+title: "Don'tGetKicked3"
+author: "Wiroon Bowonthanasan"
+date: "5/4/2020"
+output: html_document
+---
+
+```{r}
+require(tidyverse)
+
+train_kicked=read_csv('C:/Users/wiroo/Documents/SCHOOL/Pace/Data Mining Algorithms and Applications/DontGetKicked/training.csv')
+
+test_kicked=read_csv('C:/Users/wiroo/Documents/SCHOOL/Pace/Data Mining Algorithms and Applications/DontGetKicked/test.csv')
+
+train_kicked
+test_kicked
+```
+## Preprocessing 
+
+```{r}
+#Checking the data structure
+
+str(train_kicked) 
+```
+
+```{r}
+#Fixing the data.
+train_kicked$IsBadBuy<- as.factor(train_kicked$IsBadBuy) #Changing to factor.
+train_kicked<-na.omit(train_kicked) #Getting rid of NA values.
+
+train_kicked
+```
+
+#Model Fitting
+```{r}
+#Splitting the data into train/test data
+
+n= nrow(train_kicked)
+
+set.seed(123)
+training_row=runif(n)>.4 #Splitting data into 60/40 % train/test
+
+
+training_data=train_kicked[training_row,]
+testing_data=train_kicked[!training_row,]
+
+#Models
+
+f <- IsBadBuy~ VehYear + VehicleAge + Make + VehOdo + VehBCost 
+
+f2<- IsBadBuy~ VehYear + VehicleAge + Make + VehOdo + VehBCost + Transmission
+
+
+badkicked_model<-glm(f, data = training_data, family=binomial) 
+
+badkicked_model2<-glm(f2, data = training_data, family=binomial)
+#Using Generalized Linear Regression model(glm).
+#The training data is used to fit model.
+
+summary(badkicked_model)
+
+summary(badkicked_model2)
+
+
+#The difference between the null deviance and the residual deviance shows how our model is doing. The wider this gap, the better.    Null deviance: 31146                                                                                                              Model1:Residual deviance: 29729 AIC: 29801                                                                                 model2:Residual deviance: 29710 AIC: 29788                                                                                             #As we can see that the model2 has a bigger gap between null deviance and residual diviance.
+
+#The residual deviance should not increase and AIC should decrease.
+#Comparing the two models:model1 Residual deviance: 29729 AIC: 29801                                                                                             model2 Residual deviance: 29710 AIC: 29788
+#So, the model2 should be considered.
+
+```
+
+## Model Fit Evaluation 
+
+$$ pseudoR^2= 1 - \frac{deviance}{null.deviance}$$
+```{r}
+#PseduoRSquare Value
+require(broom)
+
+glance(badkicked_model)
+glance(badkicked_model)%>% summarise(pseduoR2= 1-deviance/null.deviance)
+
+glance(badkicked_model2)
+glance(badkicked_model2)%>% summarise(pseduoR2= 1-deviance/null.deviance)
+
+#As we can see that the pseduoR2 of model1 is 0.04550499	                                                                                                                 model2 is 0.04609353 which is higher.
+
+
+```
+
+#Predictive ability of the model
+```{r}
+
+#Predicting on the testing split.
+predictions <- predict(badkicked_model2, testing_data, type='response')
+
+predictions
+
+```
+
+#Evaluation
+```{r}
+#Evaluating
+
+#Cutoff value of 10%
+predictions <- predict(badkicked_model2, testing_data, type='response')
+
+table(AcutualValue = testing_data$IsBadBuy, PredictedValue = predictions>0.1 )
+
+predictions <- ifelse(predictions>0.1,'1','0')
+
+#Calculating accuracy
+misClasificError <- mean(predictions != testing_data$IsBadBuy)
+Accuracy<- (1-misClasificError)
+
+Accuracy 
+
+
+#Cutoff  value of 50%
+predictions2 <- predict(badkicked_model2, testing_data, type='response')
+
+table(AcutualValue = testing_data$IsBadBuy, PredictedValue = predictions2>0.5 )
+
+predictions2 <- ifelse(predictions2>0.5,'1','0')
+
+#Calculating accuracy
+misClasificError <- mean(predictions2 != testing_data$IsBadBuy)
+Accuracy2<- (1-misClasificError)
+
+Accuracy2 
+
+
+#The accuracy of the predictions with a cutoff value of 10% is 51.33455%.
+#The accuracy of the predictions with a cutoff value of 19% is 87.73969%.
+
+
+train_kicked %>% group_by(IsBadBuy) %>% count()
+#Because the dataset is imbalanced. In otherwords, the dataset has a much higher number of goodbuy(0) than badbuy(1). The outcome variable does not have equal proportion of both classes(0,1). This dataset has 88% of goodbuy and 12% of badbuy. Therefore, the accuracy is not a good measure for this model's prediction.
+
+
+#Eventhough the accuracy for predictions with a cutoff value of 50% is higher, however the number of correct predictions is fewer than predictions with a cutoff value of 10%. We want to have fewer incorrect predictions and more correct ones. As we can see from the confustionmatrix, the true positive value is higher than the false positive value in table 1, unlike table 2, the false positive value is higher than true positive value.
+
+
+#According to the confustionmatrix, the first table which has a cutoff value of 10%, out of 24,984(12014+12970) cars purchased, We are able to correctly predict that 12,014 purchases are considered to be good buy, whereas 12,970 purchases are considered to be bad buy. Similarly, out of 3,490 cars purchased, we are able to correctly predict that 887 purchases are good buys and 2,603 are bad buys.
+
+```
+
+#Finding the actual stregnth of the model
+```{r}
+#install.packages("yardstick")
+require(yardstick)
+
+#Creating a actual/observed vs predicted dataframe
+actual_predictions <- data.frame(observed = testing_data$IsBadBuy, predicted = factor(predictions))
+
+# Calculating precision, recall and F1_score
+precision_number <- precision(actual_predictions, observed, predicted)
+recall_number    <- recall(actual_predictions, observed, predicted)
+F1_score         <- f_meas(actual_predictions, observed, predicted) #called f_measure
+
+precision_number  #Precision: determines the accuracy of positive predictions.
+recall_number     #Recall: determines the fraction of positives that were correctly identified.
+F1_score          #F1 Score: is a weighted harmonic mean of precision and recall with the best score of 1 and the worst score of 0. F1                    score conveys the balance between the precision and the recall.
+
+#According to the F1 score, our model has strength of 63.42352%.
+```
+
+#ROC Curve to find the cuttoff
+```{r}
+require(ROCR)
+
+p   <- predict(badkicked_model2, newdata=testing_data, type="response")
+pr  <- prediction(p, testing_data$IsBadBuy)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf, colorize= TRUE, print.cutoffs.at=seq(0.1,by=0.1))
+
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
+
+
+#As we can see from the graph, the cutoff value of 0.1 has higher true positive rate than 0.2 but it has more false positve rate. If we choose to have a cutoff value of 0.2 or above, it will has less true positive rate which will affect the accuracy rate of the model even if the false positive rate might be less. The cutoff value of 0.1 has the true positve rate around 60% which matches the strenth of the model by using the F1 score.
+
+#AUC(Area Under the Curve) is a better measure for accuracy of a binary classification problem. In this model, the AUC is 66.43968% which is very close to the F1 score. 
+
+
+
+```
+
+#Predictions of the model on testing data
+```{r}
+predictions <- predict(badkicked_model2, test_kicked, type='response')
+
+predictions <- ifelse(predictions>0.1,'1','0')
+
+output<-cbind(test_kicked, IsBadBuy=predictions)
+#Added prediction column to the test data at the end.
+
+output
+```
+
+#Converting to summitting format
+```{r}
+
+write.csv(output,'IsBadBuy.csv')
+
+IsBadBuy_Entry= output %>% dplyr:: select(1,34)
+
+write.csv(IsBadBuy_Entry,'IsBadBuy_Entry.csv')
+
+IsBadBuy_Entry%>% group_by(IsBadBuy) %>% count()
+
+#After submitting, with cutoff value of 51% score is -0.02161.                                                                                            with cutoff value of 50% score is -0.02136.                                                                                            with cutoff value of 19% score is  0.05576.                                                                                            with cutoff value of 10% score is  0.08085. 
+
+```
+

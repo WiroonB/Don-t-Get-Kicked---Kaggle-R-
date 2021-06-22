@@ -6,7 +6,7 @@ Data science project from Kaggle completed using R as part of school project.
 
 #### Problem Statement
 
-One of the biggest challenges of an auto dealership purchasing a used car at an auto auction is the risk of that the vehicle might have serious issues that prevent it from being sold to customers. These unfortunate purchases are called "kicks." Kicked cars can be very costly to dealers after transportation cost, throw-away repair work, and market losses in reselling the vehicle.\
+One of the biggest challenges of an auto dealership purchasing a used car at an auto auction is the risk of that the vehicle might have serious issues that prevent it from being sold to customers. These unfortunate purchases are called "kicks." Kicked cars can be very costly to dealers after transportation cost, throw-away repair work, and market losses in reselling the vehicle.
 
 The challenge of this problem is to predict if the car purchased at the Auction is a Kick (bad buy).
 

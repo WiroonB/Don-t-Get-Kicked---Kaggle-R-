@@ -1,4 +1,4 @@
-# Don-t-Get-Kicked---Kaggle-R-
+# Dont-Get-Kicked---Kaggle-R-
 
 This is a school group project completed by using R. 
 

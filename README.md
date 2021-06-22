@@ -12,7 +12,7 @@ The challenge of this problem is to predict if the car purchased at the Auction 
 
 #### Approach
 
-I started with with preprocessing data before predicting the target variable which is IsBadKick and spliting the data into training and testing groups. Then I conducted model fitting and implemented a logistic regression to model and fit the data. To quantify the models, I calculated accuracy with different cutoff values, F1 Score, Precision, Recall  which are a better measure for accuracy of a binary classification problem. I also impleted AUC(Area Under the Curve) to find the cutoff value. 
+I started with with preprocessing data before predicting the target variable which is IsBadKick and spliting the data into training and testing groups. Then I conducted model fitting and implemented a logistic regression to model and fit the data. To quantify the models, I calculated accuracy with different cutoff values, F1 Score, Precision, Recall  which are a better measure for accuracy of a binary classification problem. I also implemented AUC(Area Under the Curve) to find the cutoff value. 
 #### Result
 The F1 score of the model has strength of 63.42352%.\
 The AUC is 66.43968%.\

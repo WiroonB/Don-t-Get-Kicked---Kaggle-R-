@@ -18,10 +18,9 @@ The F1 score of the model has strength of 63.42352%.\
 The AUC is 66.43968%.\
 The best score after submitting challenge is 0.08085. 
 
-| | | 
-|:-------------------------:|:-------------------------:|
-|<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="https://github.com/WiroonB/DontGetKicked-Kaggle-R/blob/main/Don-tGetKicked3_files/figure-gfm/unnamed-chunk-6-1.png?raw=true"> Age and Kicked Cars |  <img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="https://github.com/WiroonB/DontGetKicked-Kaggle-R/blob/main/Don-tGetKicked3_files/figure-gfm/unnamed-chunk-11-1.png?raw=true"> AUC ||
 
+|<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="https://github.com/WiroonB/DontGetKicked-Kaggle-R/blob/main/Don-tGetKicked3_files/figure-gfm/unnamed-chunk-6-1.png?raw=true"> |  <img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="https://github.com/WiroonB/DontGetKicked-Kaggle-R/blob/main/Don-tGetKicked3_files/figure-gfm/unnamed-chunk-11-1.png?raw=true"> |
+|:-------------------------:|:-------------------------:|
 
 
 #### Note

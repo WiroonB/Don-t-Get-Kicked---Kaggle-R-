@@ -725,7 +725,8 @@ output
 
 ## Converting to Summitting Format
 
-After submitting, \* cutoff value of 51% score is -0.02161.
+After submitting, 
+  - cutoff value of 51% score is -0.02161.
 
   - cutoff value of 50% score is -0.02136.
 
